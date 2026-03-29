@@ -7,11 +7,11 @@ import (
 )
 
 func RegisterRoutes(app *fiber.App) {
-	api := app.Group("/api")
+	api := app.Group("/tutor")
 
 	api.Get("/", func(c *fiber.Ctx) error { //Test
 		return c.JSON(fiber.Map{})
 	})
 
-	api.Post("/Tutor/:id", handlers.SaveTutor) //Add Tutor's info
+	api.Post("/save-tutor-data/:id", handlers.SaveTutor) //Add Tutor's info
 }
