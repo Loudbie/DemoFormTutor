@@ -3,10 +3,20 @@ package handlers
 import (
 	"DemoFormTutor/Form/database"
 	"DemoFormTutor/Form/structs"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
+/*
+TODO Возможность протестировать
+TODO Переиспользование кода (разделение на части)
+TODO Возврат без строки, вместо неё нужна ошибка
+TODO Проверку на дубликат вводных данных
+
+Выполнено:
+Возврат записанных данных
+*/
 func SaveTutor(c *fiber.Ctx) error {
 	tutor := new(structs.Tutor)
 	if err := c.BodyParser(tutor); err != nil {
@@ -16,5 +26,13 @@ func SaveTutor(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).SendString("Ошибка вставки данных в базу")
 	}
-	return c.Status(201).SendString("Репетитор успешно добавлен")
+	return c.Status(201).SendString(
+		"Репетитор успешно добавлен:" +
+			"\nИмя: " + tutor.Name +
+			"\nEmail:" + tutor.Email +
+			"\nОпыт работы: " + tutor.ExpWorkTime +
+			"\nОжидания от работы: " + tutor.Expectation +
+			"\nНеобходимость курсов: " + strconv.FormatBool(tutor.NeedCourses) +
+			"\nРаботал ли до этого: " + strconv.FormatBool(tutor.TutorBefore),
+	)
 }
