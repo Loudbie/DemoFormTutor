@@ -3,9 +3,11 @@ package main
 import (
 	"DemoFormTutor/Form/database"
 	"DemoFormTutor/Form/routes"
+	"DemoFormTutor/Form/viperConfig"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 )
 
 /*
@@ -19,6 +21,8 @@ import (
 4. Сделать Тесты
 */
 func main() {
+	viperConfig.CheckSetConfig()
+
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
@@ -28,5 +32,5 @@ func main() {
 
 	routes.RegisterRoutes(app)
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(viper.GetString("port")))
 }
