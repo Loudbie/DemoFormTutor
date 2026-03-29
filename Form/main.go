@@ -1,8 +1,8 @@
 package main
 
 import (
-	"layers/Form/database"
-	"layers/Form/routes"
+	"DemoFormTutor/Form/database"
+	"DemoFormTutor/Form/routes"
 	"log"
 
 	"github.com/gofiber/fiber/v2"

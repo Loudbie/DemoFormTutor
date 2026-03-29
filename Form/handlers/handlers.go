@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"layers/Form/database"
-	"layers/Form/structs"
+	"DemoFormTutor/Form/database"
+	"DemoFormTutor/Form/structs"
 
 	"github.com/gofiber/fiber/v2"
 )
