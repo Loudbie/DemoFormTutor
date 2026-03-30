@@ -23,9 +23,7 @@ import (
 func main() {
 	viperConfig.CheckSetConfig()
 
-	if err := database.Connect(); err != nil {
-		log.Fatal(err)
-	}
+	database.Connect()
 	app := fiber.New(fiber.Config{
 		Prefork: false,
 	})
