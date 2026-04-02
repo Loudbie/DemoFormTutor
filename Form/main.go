@@ -21,7 +21,9 @@ import (
 4. Сделать Тесты
 */
 func main() {
-	viperConfig.CheckSetConfig()
+	if err := viperConfig.CheckSetConfig(); err != nil {
+		log.Fatalln(err)
+	}
 
 	database.Connect()
 	app := fiber.New(fiber.Config{

@@ -40,7 +40,7 @@ func (h *TutorHandler) SaveTutor(c *fiber.Ctx) error {
 			"Почта":                  tutor.Email,
 			"Опыт работы":            tutor.ExpWorkTime,
 			"Ожидания от работы":     tutor.Expectation,
-			"Нужны ли курсы":         tutor.TutorBefore,
+			"Нужны ли курсы":         tutor.NeedCourses,
 			"Преподавал ли до этого": tutor.TutorBefore,
 		},
 	})
