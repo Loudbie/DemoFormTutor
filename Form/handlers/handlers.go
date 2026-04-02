@@ -9,12 +9,12 @@ import (
 
 /*
 TODO Переиспользование кода (разделение на части)
-TODO Проверку на дубликат вводных данных
 
 Выполнено:
 Возврат записанных данных
 Возможность протестировать
 Возврат без строки, вместо неё ошибка
+Проверку на дубликат вводных данных
 */
 type DatabaseExecutor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -26,10 +26,31 @@ type TutorHandler struct {
 
 func (h *TutorHandler) SaveTutor(c *fiber.Ctx) error {
 	tutor := new(structs.Tutor)
+	//Получение данных с запроса
 	if err := c.BodyParser(tutor); err != nil {
 		return c.Status(400).SendString("Неверный формат запрос")
 	}
-	_, err := h.DB.Exec("INSERT INTO tutor (name, email, expworktime, expectation, needcourses, tutorbefore) VALUES ($1, $2, $3, $4, $5, $6)", tutor.Name, tutor.Email, tutor.ExpWorkTime, tutor.Expectation, tutor.NeedCourses, tutor.TutorBefore)
+	//============================================================================
+	//ВАЛИДАЦИЯ ДАННЫХ
+	//============================================================================
+
+	//Проверка на повторное регистрирование почты
+	_, err := h.DB.Exec("SELECT email FROM tutor WHERE email = ?", tutor.Email)
+
+	switch {
+	//Проверка на отсутствие ввода имени
+	case tutor.Name == "":
+		return c.Status(400).SendString("Имя нужно обязательно.")
+	//Проверка на отстутствие ввода почты
+	case tutor.Email == "":
+		return c.Status(400).SendString("Email нужен обязательно.")
+	//Завершение проверки на повторное регистрирование почты
+	case err != nil:
+		return c.Status(400).SendString("Email уже занят")
+	}
+	//============================================================================
+
+	_, err = h.DB.Exec("INSERT INTO tutor (name, email, expworktime, expectation, needcourses, tutorbefore) VALUES (?, ?, ?, ?, ?, ?)", tutor.Name, tutor.Email, tutor.ExpWorkTime, tutor.Expectation, tutor.NeedCourses, tutor.TutorBefore)
 	if err != nil {
 		return c.Status(500).SendString("Ошибка вставки данных в базу")
 	}

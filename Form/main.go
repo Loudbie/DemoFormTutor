@@ -1,7 +1,6 @@
 package main
 
 import (
-	"DemoFormTutor/Form/database"
 	"DemoFormTutor/Form/routes"
 	"DemoFormTutor/Form/viperConfig"
 	"log"
@@ -24,8 +23,6 @@ func main() {
 	if err := viperConfig.CheckSetConfig(); err != nil {
 		log.Fatalln(err)
 	}
-
-	database.Connect()
 	app := fiber.New(fiber.Config{
 		Prefork: false,
 	})
