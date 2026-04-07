@@ -1,7 +1,10 @@
 package main
 
 import (
+	"DemoFormTutor/Form/handlers"
+	"DemoFormTutor/Form/repository"
 	"DemoFormTutor/Form/routes"
+	"DemoFormTutor/Form/usecase"
 	"DemoFormTutor/Form/viperConfig"
 	"log"
 
@@ -26,8 +29,16 @@ func main() {
 	app := fiber.New(fiber.Config{
 		Prefork: false,
 	})
+	connstr := viper.GetString("db")
+	tutorRepo, err := repository.NewPostgresTutorRepository(connstr)
+	if err != nil {
+		log.Fatalf("Cannot connect to db: %v", err)
+	}
 
-	routes.RegisterRoutes(app)
+	tutorUC := usecase.NewTutorUseCase(tutorRepo)
+	handler := handlers.NewTutorHandler(tutorUC)
+
+	routes.RegisterRoutes(app, handler)
 
 	log.Fatal(app.Listen(viper.GetString("port")))
 }
