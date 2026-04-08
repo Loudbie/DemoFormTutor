@@ -3,6 +3,7 @@ package handlers
 import (
 	"DemoFormTutor/Form/structs"
 	"DemoFormTutor/Form/usecase"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,9 +22,10 @@ func (h *TutorHandler) CreateTutor(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := h.tutorUC.CreateTutor(ctx, &tutor); err != nil {
+	if err := h.tutorUC.CreateTutor(ctx.Context(), &tutor); err != nil {
+		fmt.Errorf("%s:%s", ctx.Request().URI().String(), err.Error())
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{"Tutor added": tutor})
+	fmt.Println(tutor.ID)
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{"Result": tutor})
 }

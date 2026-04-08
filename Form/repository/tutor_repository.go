@@ -2,15 +2,15 @@ package repository
 
 import (
 	"DemoFormTutor/Form/structs"
+	"context"
 	"database/sql"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
 type TutorRepository interface {
-	Save(ctx *fiber.Ctx, tutor *structs.Tutor) error
+	Save(ctx context.Context, tutor *structs.Tutor) (*structs.Tutor, error)
 }
 type PostgresTutorRepository struct {
 	db *sql.DB
@@ -27,21 +27,21 @@ func NewPostgresTutorRepository(connStr string) (TutorRepository, error) {
 	return &PostgresTutorRepository{db: db}, nil
 }
 
-func (r *PostgresTutorRepository) Save(ctx *fiber.Ctx, t *structs.Tutor) error {
+func (r *PostgresTutorRepository) Save(ctx context.Context, t *structs.Tutor) (*structs.Tutor, error) {
 	const query = `INSERT INTO tutor 
     				(name, email, expworktime, expectation, needcourses, tutorbefore)
 					VALUES ($1, $2, $3, $4, $5, $6)
 					RETURNING id`
-	_, err := r.db.Exec(query,
+	err := r.db.QueryRowContext(ctx, query,
 		t.Name,
 		t.Email,
 		t.ExpWorkTime,
 		t.Expectation,
 		t.NeedCourses,
 		t.TutorBefore,
-	)
+	).Scan(&t.ID)
 	if err != nil {
-		return ctx.Status(500).SendString("Ошибка вставки данных в базу")
+		return &structs.Tutor{}, fmt.Errorf("insert tutor: %w", err)
 	}
-	return nil
+	return t, nil
 }

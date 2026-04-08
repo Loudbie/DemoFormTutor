@@ -3,13 +3,12 @@ package usecase
 import (
 	"DemoFormTutor/Form/repository"
 	"DemoFormTutor/Form/structs"
+	"context"
 	"fmt"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type TutorUseCase interface {
-	CreateTutor(ctx *fiber.Ctx, tutor *structs.Tutor) error
+	CreateTutor(ctx context.Context, tutor *structs.Tutor) error
 }
 type tutorUseCase struct {
 	tutorRepo repository.TutorRepository
@@ -19,8 +18,7 @@ func NewTutorUseCase(repo repository.TutorRepository) TutorUseCase {
 	return &tutorUseCase{tutorRepo: repo}
 }
 
-func (u *tutorUseCase) CreateTutor(ctx *fiber.Ctx, tutor *structs.Tutor) error {
-
+func (u *tutorUseCase) CreateTutor(ctx context.Context, tutor *structs.Tutor) error {
 	switch {
 	//Проверка на отсутствие ввода имени
 	case tutor.Name == "":
@@ -29,5 +27,11 @@ func (u *tutorUseCase) CreateTutor(ctx *fiber.Ctx, tutor *structs.Tutor) error {
 	case tutor.Email == "":
 		return fmt.Errorf("Email нужен обязательно")
 	}
-	return u.tutorRepo.Save(ctx, tutor)
+
+	_, err := u.tutorRepo.Save(ctx, tutor)
+	if err != nil {
+		return fmt.Errorf("failed save tutor: %w", err)
+	}
+
+	return nil
 }
