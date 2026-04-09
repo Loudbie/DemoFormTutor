@@ -65,15 +65,16 @@ func TestPostgresTutorRepository(t *testing.T) {
 		tutorGetPointer, err := repo.Save(ctx, tutor)
 		require.NoError(t, err)
 		var tutorInDB structs.Tutor
-		row := db.QueryRow(`SELECT id, name, email, expworktime, expectation, needcourses, tutorbefore
+		row := db.QueryRow(`SELECT id, name, email, expworktime, expectation, needcourses, tutorbefore, createdat
 									FROM tutor WHERE id = $1`, tutorGetPointer.ID)
 
 		err = row.Scan(&tutorInDB.ID, &tutorInDB.Name,
 			&tutorInDB.Email, &tutorInDB.ExpWorkTime,
-			&tutorInDB.Expectation, &tutorInDB.NeedCourses, &tutorInDB.TutorBefore)
+			&tutorInDB.Expectation, &tutorInDB.NeedCourses, &tutorInDB.TutorBefore, &tutorInDB.CreatedAt)
 		require.NoError(t, err)
 
 		tutorGet := *tutorGetPointer
+		tutorGet.CreatedAt = tutorInDB.CreatedAt
 		assert.Equal(t, tutorInDB, tutorGet)
 		idTest = strconv.Itoa(tutorInDB.ID)
 	})
@@ -91,7 +92,8 @@ func TestPostgresTutorRepository(t *testing.T) {
        						expworktime,
        						expectation,
        						needcourses,
-       						tutorbefore
+       						tutorbefore,
+       						createdat
 				 	 FROM	tutor
 		 			WHERE	id = $1`, tutor.ID)
 		err = row.Scan(
@@ -101,10 +103,12 @@ func TestPostgresTutorRepository(t *testing.T) {
 			&tutorInDB.Expectation,
 			&tutorInDB.NeedCourses,
 			&tutorInDB.TutorBefore,
+			&tutorInDB.CreatedAt,
 		)
 		require.NoError(t, err)
 		tutorGet := *tutorGetPointer
 		tutorGet.ID = tutorInDB.ID
+		tutorGet.CreatedAt = tutorInDB.CreatedAt
 		assert.Equal(t, tutorInDB, tutorGet)
 	})
 }

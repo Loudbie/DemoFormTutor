@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -35,8 +36,8 @@ func NewPostgresTutorRepositoryFromDB(db *sql.DB) TutorRepository {
 
 func (r *PostgresTutorRepository) Save(ctx context.Context, t *structs.Tutor) (*structs.Tutor, error) {
 	const query = `INSERT INTO tutor 
-    				(name, email, expworktime, expectation, needcourses, tutorbefore)
-					VALUES ($1, $2, $3, $4, $5, $6)
+    				(name, email, expworktime, expectation, needcourses, tutorbefore, createdat)
+					VALUES ($1, $2, $3, $4, $5, $6, $7)
 					RETURNING id`
 	err := r.db.QueryRowContext(ctx, query,
 		t.Name,
@@ -45,7 +46,9 @@ func (r *PostgresTutorRepository) Save(ctx context.Context, t *structs.Tutor) (*
 		t.Expectation,
 		t.NeedCourses,
 		t.TutorBefore,
+		time.Now(),
 	).Scan(&t.ID)
+	t.CreatedAt = time.Now()
 	if err != nil {
 		return &structs.Tutor{}, fmt.Errorf("insert tutor: %w", err)
 	}
@@ -58,7 +61,8 @@ func (r *PostgresTutorRepository) FindById(ctx context.Context, id string) (*str
        						expworktime,
        						expectation,
        						needcourses,
-       						tutorbefore
+       						tutorbefore,
+       						createdat
 				 	 FROM	tutor
 		 			WHERE	id = $1`
 	t := &structs.Tutor{}
@@ -66,6 +70,9 @@ func (r *PostgresTutorRepository) FindById(ctx context.Context, id string) (*str
 	if err != nil {
 		return nil, fmt.Errorf("parse tutor: %w", err)
 	}
+
+	var timeFromDB sql.NullTime
+
 	tutorRow := r.db.QueryRowContext(ctx, query, idInt)
 	err = tutorRow.Scan(
 		&t.Name,
@@ -74,8 +81,12 @@ func (r *PostgresTutorRepository) FindById(ctx context.Context, id string) (*str
 		&t.Expectation,
 		&t.NeedCourses,
 		&t.TutorBefore,
+		&timeFromDB,
 	)
-	log.Println(t.Name, t.Email, t.ExpWorkTime, t.Expectation, t.NeedCourses, t.TutorBefore, err)
+	if timeFromDB.Valid {
+		t.CreatedAt = timeFromDB.Time
+	}
+	log.Println(t.Name, t.Email, t.ExpWorkTime, t.Expectation, t.NeedCourses, t.TutorBefore, t.CreatedAt, err)
 	if err != nil {
 		return &structs.Tutor{}, fmt.Errorf("find tutor by id: %w", err)
 	}
