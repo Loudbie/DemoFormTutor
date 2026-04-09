@@ -26,6 +26,9 @@ func NewPostgresTutorRepository(connStr string) (TutorRepository, error) {
 	}
 	return &PostgresTutorRepository{db: db}, nil
 }
+func NewPostgresTutorRepositoryFromDB(db *sql.DB) TutorRepository {
+	return &PostgresTutorRepository{db: db}
+}
 
 func (r *PostgresTutorRepository) Save(ctx context.Context, t *structs.Tutor) (*structs.Tutor, error) {
 	const query = `INSERT INTO tutor 
