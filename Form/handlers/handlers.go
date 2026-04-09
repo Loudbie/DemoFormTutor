@@ -29,3 +29,13 @@ func (h *TutorHandler) CreateTutor(ctx *fiber.Ctx) error {
 	fmt.Println(tutor.ID)
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{"Result": tutor})
 }
+
+func (h *TutorHandler) GetTutor(ctx *fiber.Ctx) error {
+	var tutor *structs.Tutor
+	var err error
+	if tutor, err = h.tutorUC.FindTutorById(ctx.Context(), ctx.Params("id")); err != nil {
+		fmt.Errorf("%s:%s", ctx.Request().URI().String(), err.Error())
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"Result": tutor})
+}

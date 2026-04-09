@@ -9,6 +9,7 @@ import (
 
 type TutorUseCase interface {
 	CreateTutor(ctx context.Context, tutor *structs.Tutor) error
+	FindTutorById(ctx context.Context, id string) (*structs.Tutor, error)
 }
 type tutorUseCase struct {
 	tutorRepo repository.TutorRepository
@@ -34,4 +35,12 @@ func (u *tutorUseCase) CreateTutor(ctx context.Context, tutor *structs.Tutor) er
 	}
 
 	return nil
+}
+
+func (u *tutorUseCase) FindTutorById(ctx context.Context, id string) (*structs.Tutor, error) {
+	t, err := u.tutorRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed find tutor by id: %w", err)
+	}
+	return t, nil
 }

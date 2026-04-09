@@ -5,12 +5,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"strconv"
 
 	_ "github.com/lib/pq"
 )
 
 type TutorRepository interface {
 	Save(ctx context.Context, tutor *structs.Tutor) (*structs.Tutor, error)
+	FindById(ctx context.Context, id string) (*structs.Tutor, error)
 }
 type PostgresTutorRepository struct {
 	db *sql.DB
@@ -46,5 +49,37 @@ func (r *PostgresTutorRepository) Save(ctx context.Context, t *structs.Tutor) (*
 	if err != nil {
 		return &structs.Tutor{}, fmt.Errorf("insert tutor: %w", err)
 	}
+	return t, nil
+}
+
+func (r *PostgresTutorRepository) FindById(ctx context.Context, id string) (*structs.Tutor, error) {
+	const query = `SELECT	name,
+       						email,
+       						expworktime,
+       						expectation,
+       						needcourses,
+       						tutorbefore
+				 	 FROM	tutor
+		 			WHERE	id = $1`
+	t := &structs.Tutor{}
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, fmt.Errorf("parse tutor: %w", err)
+	}
+	tutorRow := r.db.QueryRowContext(ctx, query, idInt)
+	err = tutorRow.Scan(
+		&t.Name,
+		&t.Email,
+		&t.ExpWorkTime,
+		&t.Expectation,
+		&t.NeedCourses,
+		&t.TutorBefore,
+	)
+	log.Println(t.Name, t.Email, t.ExpWorkTime, t.Expectation, t.NeedCourses, t.TutorBefore, err)
+	if err != nil {
+		return &structs.Tutor{}, fmt.Errorf("find tutor by id: %w", err)
+	}
+	t.ID = idInt
+	log.Println(t)
 	return t, nil
 }
