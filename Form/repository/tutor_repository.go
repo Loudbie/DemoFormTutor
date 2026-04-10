@@ -136,7 +136,7 @@ func (r *PostgresTutorRepository) GetAll(ctx context.Context, sort string) ([]st
        						createdat,
        						status
 					FROM 	tutor
-					ORDER BY createdat DESC`
+					ORDER BY createdat`
 	)
 	var tutors []structs.Tutor
 	var err error
