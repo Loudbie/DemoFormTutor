@@ -22,16 +22,21 @@ type FakeUseCase struct {
 }
 
 func (f FakeUseCase) GetAllTutors(ctx context.Context, sort string) ([]structs.Tutor, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
 	return []structs.Tutor{}, nil
 }
 
 func (f FakeUseCase) FindTutorById(ctx context.Context, id string) (*structs.Tutor, error) {
-	if errors.Is(f.err, sql.ErrNoRows) {
+	switch {
+	case errors.Is(f.err, sql.ErrNoRows):
+		return nil, f.err
+	case f.err != nil:
 		return nil, f.err
 	}
 	return &structs.Tutor{}, nil
 }
-
 func (f FakeUseCase) CreateTutor(ctx context.Context, tutor *structs.Tutor) error {
 	if f.err != nil {
 		return f.err
