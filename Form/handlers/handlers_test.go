@@ -9,7 +9,6 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,24 +45,13 @@ func NewFakeUseCase(err error) FakeUseCase {
 	return FakeUseCase{err: err}
 }
 
-var (
-	testApp *fiber.App
-	handler TutorHandler
-)
-
-func TestMain(m *testing.M) {
-	handler = TutorHandler{tutorUC: NewFakeUseCase(nil)}
-
-	testApp = fiber.New()
-	testApp.Post("/tutor/save-tutor-data/:id", handler.CreateTutor)
-	testApp.Get("/tutor/find-tutor-data/:id", handler.GetTutor)
-	testApp.Get("/tutor/find-tutors/:sort", handler.GetAllTutors)
-
-	code := m.Run()
-	os.Exit(code)
-}
 func TestTutorHandler(t *testing.T) {
 	t.Run("Success_Save", func(t *testing.T) {
+		handler := TutorHandler{tutorUC: NewFakeUseCase(nil)}
+
+		testApp := fiber.New()
+		testApp.Post("/tutor/save-tutor-data/:id", handler.CreateTutor)
+
 		tutor := structs.Tutor{
 			ID:          0,
 			Name:        "Amogus",
@@ -88,6 +76,11 @@ func TestTutorHandler(t *testing.T) {
 		AssertTutorResponse(t, tutor, UnmarshalTutor(t, resp.Body))
 	})
 	t.Run("Wrong_struct_empty_Save", func(t *testing.T) {
+		handler := TutorHandler{tutorUC: NewFakeUseCase(nil)}
+
+		testApp := fiber.New()
+		testApp.Post("/tutor/save-tutor-data/:id", handler.CreateTutor)
+
 		type fakeStruct struct {
 			ID          int    `json:"id"`
 			Name        string `json:"name"`
@@ -116,6 +109,11 @@ func TestTutorHandler(t *testing.T) {
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 	})
 	t.Run("Success_FindById", func(t *testing.T) {
+		handler := TutorHandler{tutorUC: NewFakeUseCase(nil)}
+
+		testApp := fiber.New()
+		testApp.Get("/tutor/find-tutor-data/:id", handler.GetTutor)
+
 		req := httptest.NewRequest("GET", "/tutor/find-tutor-data/some_id", nil)
 
 		resp, err := testApp.Test(req)
@@ -123,22 +121,35 @@ func TestTutorHandler(t *testing.T) {
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
 	t.Run("NoRows_Error_FindById", func(t *testing.T) {
-		handler = TutorHandler{tutorUC: NewFakeUseCase(sql.ErrNoRows)}
+		handler := TutorHandler{tutorUC: NewFakeUseCase(sql.ErrNoRows)}
+
+		testApp := fiber.New()
+		testApp.Get("/tutor/find-tutor-data/:id", handler.GetTutor)
 
 		req := httptest.NewRequest("GET", "/tutor/find-tutor-data/give_me_error", nil)
+
 		resp, err := testApp.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	})
 	t.Run("Random_Error_FindById", func(t *testing.T) {
-		handler = TutorHandler{tutorUC: NewFakeUseCase(errors.New("Error Here!"))}
+		handler := TutorHandler{tutorUC: NewFakeUseCase(errors.New("Error Here!"))}
+
+		testApp := fiber.New()
+		testApp.Get("/tutor/find-tutor-data/:id", handler.GetTutor)
 
 		req := httptest.NewRequest("GET", "/tutor/find-tutor-data/give_me_error", nil)
+
 		resp, err := testApp.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	})
 	t.Run("Success_GetAllTutors", func(t *testing.T) {
+		handler := TutorHandler{tutorUC: NewFakeUseCase(nil)}
+
+		testApp := fiber.New()
+		testApp.Get("/tutor/find-tutors/:sort", handler.GetAllTutors)
+
 		req := httptest.NewRequest("GET", "/tutor/find-tutors/some_sort_args", nil)
 
 		resp, err := testApp.Test(req)
@@ -146,7 +157,11 @@ func TestTutorHandler(t *testing.T) {
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
 	t.Run("Error_GetAllTutors", func(t *testing.T) {
-		handler = TutorHandler{tutorUC: NewFakeUseCase(errors.New("Error Here!"))}
+		handler := TutorHandler{tutorUC: NewFakeUseCase(errors.New("Error Here!"))}
+
+		testApp := fiber.New()
+		testApp.Get("/tutor/find-tutors/:sort", handler.GetAllTutors)
+
 		req := httptest.NewRequest("GET", "/tutor/find-tutors/give_me_error", nil)
 
 		resp, err := testApp.Test(req)
