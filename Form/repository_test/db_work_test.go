@@ -81,7 +81,15 @@ func TestPostgresTutorRepository(t *testing.T) {
 	t.Run("Gets", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := repo.GetAll(ctx)
+		_, err := repo.GetAll(ctx, "status=false")
 		require.NoError(t, err)
+
+		_, err = repo.GetAll(ctx, "status=true")
+		require.NoError(t, err)
+
+		_, err = repo.GetAll(ctx, "date")
+		require.NoError(t, err)
+
+		_, err = repo.GetAll(ctx, "all")
 	})
 }
