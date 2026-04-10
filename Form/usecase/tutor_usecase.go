@@ -4,12 +4,15 @@ import (
 	"DemoFormTutor/Form/repository"
 	"DemoFormTutor/Form/structs"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 )
 
 type TutorUseCase interface {
 	CreateTutor(ctx context.Context, tutor *structs.Tutor) error
 	FindTutorById(ctx context.Context, id string) (*structs.Tutor, error)
+	GetAllTutors(ctx context.Context, sort string) ([]structs.Tutor, error)
 }
 type tutorUseCase struct {
 	tutorRepo repository.TutorRepository
@@ -40,7 +43,20 @@ func (u *tutorUseCase) CreateTutor(ctx context.Context, tutor *structs.Tutor) er
 func (u *tutorUseCase) FindTutorById(ctx context.Context, id string) (*structs.Tutor, error) {
 	t, err := u.tutorRepo.FindById(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed find tutor by id: %w", err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, err
+		default:
+			return nil, fmt.Errorf("failed find tutor by id: %w", err)
+		}
 	}
 	return t, nil
+}
+
+func (u *tutorUseCase) GetAllTutors(ctx context.Context, sort string) ([]structs.Tutor, error) {
+	ts, err := u.tutorRepo.GetAll(ctx, sort)
+	if err != nil {
+		return nil, fmt.Errorf("failed get all tutors: %w", err)
+	}
+	return ts, nil
 }

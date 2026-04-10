@@ -3,6 +3,8 @@ package handlers
 import (
 	"DemoFormTutor/Form/structs"
 	"DemoFormTutor/Form/usecase"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,7 +37,22 @@ func (h *TutorHandler) GetTutor(ctx *fiber.Ctx) error {
 	var err error
 	if tutor, err = h.tutorUC.FindTutorById(ctx.Context(), ctx.Params("id")); err != nil {
 		fmt.Errorf("%s:%s", ctx.Request().URI().String(), err.Error())
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		default:
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"Result": tutor})
+}
+
+func (h *TutorHandler) GetAllTutors(ctx *fiber.Ctx) error {
+	var tutors []structs.Tutor
+	var err error
+	if tutors, err = h.tutorUC.GetAllTutors(ctx.Context(), ctx.Params("sort")); err != nil {
+		fmt.Errorf("%s:%s", ctx.Request().URI().String(), err.Error())
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"Result": tutors})
 }

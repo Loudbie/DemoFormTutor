@@ -11,4 +11,5 @@ type Tutor struct {
 	NeedCourses bool      `json:"needcourses"`
 	TutorBefore bool      `json:"tutorbefore"`
 	CreatedAt   time.Time `json:"createdat"`
+	Status      bool      `json:"status"`
 }

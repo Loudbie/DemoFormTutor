@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,65 +51,37 @@ func TestMain(m *testing.M) {
 }
 
 func TestPostgresTutorRepository(t *testing.T) {
-	var idTest string
 	tutor := &structs.Tutor{
+		ID:          13,
 		Name:        "Amogus",
 		Email:       "blabla@bla.bla",
 		ExpWorkTime: "Не хватает!!!",
 		Expectation: "Деньга",
 		NeedCourses: false,
 		TutorBefore: true,
+		CreatedAt:   time.Now(),
 	}
 	t.Run("Save", func(t *testing.T) {
 		ctx := context.Background()
 
 		tutorGetPointer, err := repo.Save(ctx, tutor)
 		require.NoError(t, err)
-		var tutorInDB structs.Tutor
-		row := db.QueryRow(`SELECT id, name, email, expworktime, expectation, needcourses, tutorbefore, createdat
-									FROM tutor WHERE id = $1`, tutorGetPointer.ID)
 
-		err = row.Scan(&tutorInDB.ID, &tutorInDB.Name,
-			&tutorInDB.Email, &tutorInDB.ExpWorkTime,
-			&tutorInDB.Expectation, &tutorInDB.NeedCourses, &tutorInDB.TutorBefore, &tutorInDB.CreatedAt)
-		require.NoError(t, err)
-
-		tutorGet := *tutorGetPointer
-		tutorGet.CreatedAt = tutorInDB.CreatedAt
-		assert.Equal(t, tutorInDB, tutorGet)
-		idTest = strconv.Itoa(tutorInDB.ID)
+		tutor.ID = tutorGetPointer.ID
+		assert.Equal(t, tutor, tutorGetPointer)
 	})
 	t.Run("Get", func(t *testing.T) {
 		ctx := context.Background()
-		idGet, err := strconv.Atoi(idTest)
+		tutorGetPointer, err := repo.FindById(ctx, strconv.Itoa(tutor.ID))
 		require.NoError(t, err)
-		tutor.ID = idGet
 
-		tutorGetPointer, err := repo.FindById(ctx, idTest)
+		tutor.CreatedAt = tutorGetPointer.CreatedAt
+		assert.Equal(t, tutor, tutorGetPointer)
+	})
+	t.Run("Gets", func(t *testing.T) {
+		ctx := context.Background()
+
+		_, err := repo.GetAll(ctx)
 		require.NoError(t, err)
-		var tutorInDB structs.Tutor
-		row := db.QueryRow(`SELECT	name,
-       						email,
-       						expworktime,
-       						expectation,
-       						needcourses,
-       						tutorbefore,
-       						createdat
-				 	 FROM	tutor
-		 			WHERE	id = $1`, tutor.ID)
-		err = row.Scan(
-			&tutorInDB.Name,
-			&tutorInDB.Email,
-			&tutorInDB.ExpWorkTime,
-			&tutorInDB.Expectation,
-			&tutorInDB.NeedCourses,
-			&tutorInDB.TutorBefore,
-			&tutorInDB.CreatedAt,
-		)
-		require.NoError(t, err)
-		tutorGet := *tutorGetPointer
-		tutorGet.ID = tutorInDB.ID
-		tutorGet.CreatedAt = tutorInDB.CreatedAt
-		assert.Equal(t, tutorInDB, tutorGet)
 	})
 }

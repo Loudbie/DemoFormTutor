@@ -20,6 +20,11 @@ type FakeUseCase struct {
 	countID int
 }
 
+func (f FakeUseCase) FindTutorById(ctx context.Context, id string) (*structs.Tutor, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (f FakeUseCase) CreateTutor(ctx context.Context, tutor *structs.Tutor) error {
 	if f.err != nil {
 		return f.err
